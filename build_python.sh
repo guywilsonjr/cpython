@@ -1,10 +1,10 @@
-make clean
-rm -rf config.status config.log ./default.profraw autom4te.cache/ gmon.out platform pyconfig.h python python-config python-config.py python-gdb.py Makefile Makefile.pre
 export CCACHE_COMPILERTYPE=clang
-export CC='clang'
+export CC='/usr/lib/llvm-18/bin/clang'
 export CXX=$CC
 export PROFILE_TASK='-m test --pgo --timeout=900'
-
+set -u
+set -e
+export PREFIX=$1
 #bad eval source nostacklimit flto
 #maybe bad -fsingle-precision-constant -fdenormal-fp-math=positive-zero
 #all
@@ -31,12 +31,22 @@ export PROFILE_TASK='-m test --pgo --timeout=900'
 export BUILD_CORES=8
 export COMPILEALL_OPTS='-j $BUILD_CORES -o 0 -o 1 -o 2'
 
-confopts='--prefix=$PREFIX --enable-loadable-sqlite-extensions --without-decimal-contextvar --with-dbmliborder=gdbm:ndbm:bdb --with-pkg-config=yes --with-ensurepip=upgrade --with-strict-overflow --enable-profiling --with-strict-overflow --with-computed-gotos --without-doc-strings --with-lto=full --enable-optimizations --enable-ipv6 --enable-bolt'
-./configure $confopts
-#todo --enable-bolt
-#NOTE: BOLT is currently incompatible with the -freorder-blocks-and-partition compiler option. Since GCC8 enables this option by default, you have to explicitly disable it by adding -fno-reorder-blocks-and-partition flag if you are compiling with GCC8 or above.
-make -j8
-make test
+echo "configuring"
+./conf_python.sh $PREFIX
+echo "configured"
+make -j $BUILD_CORES
+echo "made"
+declare -a envvars=("CC" "CXX" "PROFILE_TASK" "PREFIX" "BUILD_CORES" "COMPILEALL_OPTS")
 
-echo $confopts
-echo 'CC=$CC CXX=$CXX PROFILE_TASK=$PROFILE_TASK'
+for var in "${envvars[@]}";
+do
+  env | grep "$var="
+done
+
+make test
+for var in "${envvars[@]}";
+do
+  env | grep "$var="
+done
+
+
