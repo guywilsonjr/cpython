@@ -1,52 +1,57 @@
-export CCACHE_COMPILERTYPE=clang
-export CC='/usr/lib/llvm-18/bin/clang'
-export CXX=$CC
-export PROFILE_TASK='-m test --pgo --timeout=900'
+
 set -u
 set -e
-export PREFIX=$1
 #bad eval source nostacklimit flto
 #maybe bad -fsingle-precision-constant -fdenormal-fp-math=positive-zero
 #all
 #export CPPFLAGS='-Wno-ignored-optimization-argument -Wno-profile-instr-unprofiled -Wno-parentheses-equality -Wno-unused-value -Wno-empty-body -Qunused-arguments -flto -finstrument-functions -fno-sanitize=all -fno-strict-float-cast-overflow -fno-strict-overflow -Ofast -fmerge-all-constants -fdenormal-fp-math=positive-zero  -fstrict-aliasing -fomit-frame-pointer -fwhole-program-vtables -march=native'
 
 #export CPPFLAGS='-Wno-ignored-optimization-argument -Wno-profile-instr-unprofiled -Wno-parentheses-equality -Wno-unused-value -Wno-empty-body -Qunused-arguments -finstrument-functions -fno-sanitize=all -fno-strict-overflow'
-#export CFLAGS=$CPPFLAGS
-#export CXXFLAGS=$CPPFLAGS
-
-#export PY_CPPFLAGS=''
-#export BASECPPFLAGS=''
-#export BASECFLAGS=''
-#export CFLAGS=''
-#export CFLAGS_NODIST=''
-#export CFLAGS_ALIASING=''
-#do rightexport LDFLAGS='-L /usr/lib/llvm-18/lib/'
-#export OPT=optflagsenter
-#export srcdir='.'
-#export PY_CFLAGS=$(BASECFLAGS) $(OPT) $(CONFIGURE_CFLAGS) $(CFLAGS) $(EXTRA_CFLAGS)
-#export PY_CFLAGS_NODIST='$(CONFIGURE_CFLAGS_NODIST) $(CFLAGS_NODIST) -I$(srcdir)/Include/internal'
-#PY_STDMODULE_CFLAGS='$(PY_CFLAGS) $(PY_CFLAGS_NODIST) $(PY_CPPFLAGS) $(CFLAGSFORSHARED)'
-#PY_BUILTIN_MODULE_CFLAGS='$(PY_STDMODULE_CFLAGS) -DPy_BUILD_CORE_BUILTIN'
-
+export PREFIX=$1
+export CCACHE_COMPILERTYPE=clang
+export CC='/usr/lib/llvm-18/bin/clang'
+export CXX=$CC
+#export BEST_OPT_FLAGS='-Ofast -march=native'
+export BEST_OPT_FLAGS=''
+export CFLAGS=''
+export CXXFLAGS=""
+export CPPFLAGS=$CXXFLAGS
+export BASECPPFLAGS=""
+export BASECFLAGS=''
+export OPT=''
+export CFLAGS_NODIST=''
+export CFLAGS_ALIASING=''
+export EXTRA_CFLAGS=''
+export CFLAGSFORSHARED=''
+export CONFIGURE_CFLAGS_NODIST=''
+export CONFIGURE_CPPFLAGS=''
+echo "must be run from cpython source dir assuming it is: $(pwd)"
+export PY_CFLAGS="$BASECFLAGS $OPT  $CFLAGS $EXTRA_CFLAGS"
+export PY_CFLAGS_NODIST="$CONFIGURE_CFLAGS_NODIST $CFLAGS_NODIST -I$(pwd)/Include/internal"
+export PY_CPPFLAGS="$BASECPPFLAGS -I. -I$(pwd)/Include $CONFIGURE_CPPFLAGS $CPPFLAGS"
+export PY_STDMODULE_CFLAGS="$PY_CFLAGS $PY_CFLAGS_NODIST $PY_CPPFLAGS $CFLAGSFORSHARED"
+# PY_STDMODULE_CFLAGS is included in the following:
+# LIBMPDEC_CFLAGS
+# LIBEXPAT_CFLAGS
+# LIBHACL_CFLAGS
+# PY_CORE_CFLAGS
+# LIBMPDEC_CFLAGS
+# LIBMPDEC_CFLAGS
+# LIBMPDEC_CFLAGS
+# LIBMPDEC_CFLAGS
+export PY_BUILTIN_MODULE_CFLAGS="$BEST_OPT_FLAGS $PY_STDMODULE_CFLAGS -DPy_BUILD_CORE_BUILTIN"
+export LIBMPDEC_CFLAGS=''
 export BUILD_CORES=8
-export COMPILEALL_OPTS='-j $BUILD_CORES -o 0 -o 1 -o 2'
+#export COMPILEALL_OPTS="-j $BUILD_CORES -o 0 -o 1 -o 2"
 
 echo "configuring"
 ./conf_python.sh $PREFIX
 echo "configured"
 make -j $BUILD_CORES
 echo "made"
-declare -a envvars=("CC" "CXX" "PROFILE_TASK" "PREFIX" "BUILD_CORES" "COMPILEALL_OPTS")
-
-for var in "${envvars[@]}";
-do
-  env | grep "$var="
-done
-
+env
+echo "testing"
 make test
-for var in "${envvars[@]}";
-do
-  env | grep "$var="
-done
-
+env
+env >> mytestenv.$(date +%s).txt
 
