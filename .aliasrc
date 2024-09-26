@@ -1,0 +1,2 @@
+
+alias clean='make clean && rm -rf config.status config.log ./default.profraw autom4te.cache/ gmon.out platform pyconfig.h python python-config python-config.py python-gdb.py Makefile Makefile.pre'
