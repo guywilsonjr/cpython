@@ -1,0 +1,9 @@
+Total duration: 12 min 8 sec
+Total tests: run=53,131 failures=50 skipped=1,647
+Total test files: run=611/489 failed=20 env_changed=108 skipped=18 resource_denied=6 rerun=128
+Result: FAILURE then FAILURE
+make: *** [Makefile:1985: test] Error 2
+
+real    22m11.207s
+user    148m39.814s
+sys     3m31.070s
